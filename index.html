@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Utilita Demo Payment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="payment-card" aria-labelledby="page-title">
+      <header class="brand-header">
+        <div class="brand-mark" aria-hidden="true">U</div>
+        <div>
+          <p class="eyebrow">Secure payment simulation</p>
+          <h1 id="page-title">Make a card payment</h1>
+        </div>
+      </header>
+
+      <div class="demo-warning" role="alert">
+        <strong>Demo system only.</strong>
+        Do not enter real card details or any genuine personal information.
+        Nothing entered on this page is stored or sent anywhere.
+      </div>
+
+      <section class="payment-summary" aria-label="Payment summary">
+        <div>
+          <span>Payment amount</span>
+          <strong id="paymentAmount">£0.00</strong>
+        </div>
+        <div>
+          <span>Reference</span>
+          <strong id="paymentReference">DEMO</strong>
+        </div>
+      </section>
+
+      <form id="paymentForm" novalidate>
+        <div class="field">
+          <label for="cardholder">Name on card</label>
+          <input id="cardholder" name="cardholder" type="text"
+                 autocomplete="off" placeholder="Demo Customer"
+                 maxlength="60" required>
+          <small class="error" id="cardholderError"></small>
+        </div>
+
+        <div class="field">
+          <label for="cardNumber">Card number</label>
+          <input id="cardNumber" name="cardNumber" type="text"
+                 inputmode="numeric" autocomplete="off"
+                 placeholder="4242 4242 4242 4242"
+                 maxlength="19" required>
+          <small class="hint">Use a dummy number such as 4242 4242 4242 4242.</small>
+          <small class="error" id="cardNumberError"></small>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="expiry">Expiry date</label>
+            <input id="expiry" name="expiry" type="text"
+                   inputmode="numeric" autocomplete="off"
+                   placeholder="12/30" maxlength="5" required>
+            <small class="error" id="expiryError"></small>
+          </div>
+
+          <div class="field">
+            <label for="cvv">Security code</label>
+            <input id="cvv" name="cvv" type="password"
+                   inputmode="numeric" autocomplete="off"
+                   placeholder="123" maxlength="4" required>
+            <small class="error" id="cvvError"></small>
+          </div>
+        </div>
+
+        <button type="submit" id="payButton">
+          Pay <span id="buttonAmount">£0.00</span>
+        </button>
+
+        <p class="privacy-note">
+          This demo runs entirely in your browser. It does not connect to a payment provider,
+          submit the form to a server, or retain any data.
+        </p>
+      </form>
+
+      <section id="successPanel" class="success-panel" hidden aria-live="polite">
+        <div class="success-icon" aria-hidden="true">✓</div>
+        <h2>Demo payment successful</h2>
+        <p>
+          A simulated payment of <strong id="successAmount">£0.00</strong>
+          has been completed.
+        </p>
+        <p class="reference-line">
+          Demo reference: <strong id="successReference">DEMO</strong>
+        </p>
+        <button type="button" class="secondary-button" id="makeAnotherPayment">
+          Make another demo payment
+        </button>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
