@@ -1,42 +1,39 @@
-# Utilita Demo Payment App
+# Utilita Demo Payment App v2
 
-A static, browser-only demonstration payment page.
+This static demo payment page sends an SMS confirmation request through Webex Connect after a simulated payment.
 
-## How to run
+## Example
 
-Open `index.html` directly in a browser, or host the folder using any static web server.
+    index.html?amount=25.00&reference=LISA-TOPUP
 
-Example URL:
+## Webhook payload
 
-    index.html?amount=25.00&reference=UTILITA-DEMO-001
+    {
+      "number": "[Customer Mobile Number]",
+      "payment": "[Payment Amount]",
+      "reference": "[Reference supplied in the URL]"
+    }
 
-The `amount` parameter is displayed as a GBP payment amount.
+Webhook:
 
-The optional `reference` parameter is displayed as the payment reference.
-
-## Example links
-
-    index.html?amount=10
-    index.html?amount=25.50&reference=LISA-TOPUP
-    index.html?amount=40&reference=COLIN-PAYMENT
+    https://hooks.uk.webexconnect.io/events/FI7EANSH9O
 
 ## Data handling
 
-This app:
+- Card details are never transmitted or stored.
+- The app sends only the customer mobile number, amount and reference.
+- It uses no cookies, analytics, local storage or session storage.
+- Inputs are cleared after submission and when the page is left.
+- It is a demo only. Do not enter real card details.
 
-- Does not send form data to a server.
-- Does not use `fetch`, `XMLHttpRequest`, or a form action.
-- Does not use cookies, analytics, local storage, or session storage.
-- Clears the entered values after the simulated payment succeeds.
-- Clears the entered values when the page is left or refreshed.
+## Dummy values
 
-It is a demonstration only and must not be used to collect real payment-card data.
-
-## Dummy details
-
-Suggested dummy values:
-
+- Mobile: 07700 900123
 - Name: Demo Customer
 - Card number: 4242 4242 4242 4242
 - Expiry: 12/30
 - Security code: 123
+
+## Hosting note
+
+Serve this folder from a web server. The webhook must allow browser requests from the domain hosting the app. If the browser reports a CORS error, the Webex Connect endpoint must return the appropriate CORS headers or the request must be sent through a server-side proxy.

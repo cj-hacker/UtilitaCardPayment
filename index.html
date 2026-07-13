@@ -19,8 +19,8 @@
 
       <div class="demo-warning" role="alert">
         <strong>Demo system only.</strong>
-        Do not enter real card details or any genuine personal information.
-        Nothing entered on this page is stored or sent anywhere.
+        Do not enter real card details or genuine personal information.
+        Card details entered here are not stored or sent anywhere.
       </div>
 
       <section class="payment-summary" aria-label="Payment summary">
@@ -36,6 +36,15 @@
 
       <form id="paymentForm" novalidate>
         <div class="field">
+          <label for="mobileNumber">Customer mobile number</label>
+          <input id="mobileNumber" name="mobileNumber" type="tel"
+                 inputmode="tel" autocomplete="off"
+                 placeholder="07700 900123" maxlength="20" required>
+          <small class="hint">Used only to trigger the demo SMS confirmation.</small>
+          <small class="error" id="mobileNumberError"></small>
+        </div>
+
+        <div class="field">
           <label for="cardholder">Name on card</label>
           <input id="cardholder" name="cardholder" type="text"
                  autocomplete="off" placeholder="Demo Customer"
@@ -49,7 +58,7 @@
                  inputmode="numeric" autocomplete="off"
                  placeholder="4242 4242 4242 4242"
                  maxlength="19" required>
-          <small class="hint">Use a dummy number such as 4242 4242 4242 4242.</small>
+          <small class="hint">Use dummy details only.</small>
           <small class="error" id="cardNumberError"></small>
         </div>
 
@@ -76,23 +85,37 @@
         </button>
 
         <p class="privacy-note">
-          This demo runs entirely in your browser. It does not connect to a payment provider,
-          submit the form to a server, or retain any data.
+          Only the mobile number, payment amount and reference are sent to the configured
+          Webex Connect webhook. Card details are never transmitted.
         </p>
       </form>
 
-      <section id="successPanel" class="success-panel" hidden aria-live="polite">
-        <div class="success-icon" aria-hidden="true">✓</div>
+      <section id="successPanel" class="result-panel" hidden aria-live="polite">
+        <div class="result-icon" aria-hidden="true">✓</div>
         <h2>Demo payment successful</h2>
         <p>
           A simulated payment of <strong id="successAmount">£0.00</strong>
           has been completed.
+        </p>
+        <p>
+          A payment confirmation request has been sent to
+          <strong id="successMobile"></strong>.
         </p>
         <p class="reference-line">
           Demo reference: <strong id="successReference">DEMO</strong>
         </p>
         <button type="button" class="secondary-button" id="makeAnotherPayment">
           Make another demo payment
+        </button>
+      </section>
+
+      <section id="errorPanel" class="result-panel" hidden aria-live="assertive">
+        <div class="result-icon" aria-hidden="true">!</div>
+        <h2>Payment completed, but SMS failed</h2>
+        <p>The simulated payment was completed, but the webhook could not be triggered.</p>
+        <p id="webhookErrorMessage" class="reference-line"></p>
+        <button type="button" class="secondary-button" id="returnToForm">
+          Return to payment form
         </button>
       </section>
     </section>

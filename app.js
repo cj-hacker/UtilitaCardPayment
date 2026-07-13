@@ -1,90 +1,120 @@
 (() => {
   "use strict";
 
+  const WEBHOOK_URL = "https://hooks.uk.webexconnect.io/events/FI7EANSH9O";
   const params = new URLSearchParams(window.location.search);
 
   const rawAmount = params.get("amount") || "0";
   const rawReference = params.get("reference") || "DEMO";
 
-  const amount = Number.parseFloat(rawAmount);
-  const safeAmount = Number.isFinite(amount) && amount >= 0 ? amount : 0;
-  const reference = rawReference.trim().slice(0, 40) || "DEMO";
+  const parsedAmount = Number.parseFloat(rawAmount);
+  const amount = Number.isFinite(parsedAmount) && parsedAmount >= 0 ? parsedAmount : 0;
+  const reference = rawReference.trim().slice(0, 60) || "DEMO";
 
   const formattedAmount = new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP"
-  }).format(safeAmount);
+  }).format(amount);
 
-  const elements = {
+  const el = {
     paymentAmount: document.getElementById("paymentAmount"),
     paymentReference: document.getElementById("paymentReference"),
     buttonAmount: document.getElementById("buttonAmount"),
     form: document.getElementById("paymentForm"),
     successPanel: document.getElementById("successPanel"),
+    errorPanel: document.getElementById("errorPanel"),
     successAmount: document.getElementById("successAmount"),
+    successMobile: document.getElementById("successMobile"),
     successReference: document.getElementById("successReference"),
     makeAnotherPayment: document.getElementById("makeAnotherPayment"),
+    returnToForm: document.getElementById("returnToForm"),
+    webhookErrorMessage: document.getElementById("webhookErrorMessage"),
+    mobileNumber: document.getElementById("mobileNumber"),
     cardholder: document.getElementById("cardholder"),
     cardNumber: document.getElementById("cardNumber"),
     expiry: document.getElementById("expiry"),
-    cvv: document.getElementById("cvv")
+    cvv: document.getElementById("cvv"),
+    payButton: document.getElementById("payButton")
   };
 
-  elements.paymentAmount.textContent = formattedAmount;
-  elements.paymentReference.textContent = reference;
-  elements.buttonAmount.textContent = formattedAmount;
-  elements.successAmount.textContent = formattedAmount;
-  elements.successReference.textContent = reference;
+  el.paymentAmount.textContent = formattedAmount;
+  el.paymentReference.textContent = reference;
+  el.buttonAmount.textContent = formattedAmount;
+  el.successAmount.textContent = formattedAmount;
+  el.successReference.textContent = reference;
 
-  function digitsOnly(value) {
-    return value.replace(/\D/g, "");
+  const digitsOnly = value => value.replace(/\D/g, "");
+
+  function normaliseMobile(value) {
+    const trimmed = value.trim();
+    const digits = digitsOnly(trimmed);
+    return trimmed.startsWith("+") ? `+${digits}` : digits;
   }
 
   function setError(input, message) {
     const error = document.getElementById(`${input.id}Error`);
     input.classList.toggle("invalid", Boolean(message));
-    input.setAttribute("aria-invalid", Boolean(message).toString());
+    input.setAttribute("aria-invalid", String(Boolean(message)));
     if (error) error.textContent = message;
   }
 
-  function clearSensitiveFields() {
-    elements.cardholder.value = "";
-    elements.cardNumber.value = "";
-    elements.expiry.value = "";
-    elements.cvv.value = "";
+  function clearInputs() {
+    el.mobileNumber.value = "";
+    el.cardholder.value = "";
+    el.cardNumber.value = "";
+    el.expiry.value = "";
+    el.cvv.value = "";
   }
 
-  elements.cardNumber.addEventListener("input", () => {
-    const digits = digitsOnly(elements.cardNumber.value).slice(0, 16);
-    elements.cardNumber.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  function showForm() {
+    el.successPanel.hidden = true;
+    el.errorPanel.hidden = true;
+    el.form.hidden = false;
+  }
+
+  el.cardNumber.addEventListener("input", () => {
+    const digits = digitsOnly(el.cardNumber.value).slice(0, 16);
+    el.cardNumber.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
   });
 
-  elements.expiry.addEventListener("input", () => {
-    const digits = digitsOnly(elements.expiry.value).slice(0, 4);
-    elements.expiry.value =
-      digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  el.expiry.addEventListener("input", () => {
+    const digits = digitsOnly(el.expiry.value).slice(0, 4);
+    el.expiry.value = digits.length > 2
+      ? `${digits.slice(0, 2)}/${digits.slice(2)}`
+      : digits;
   });
 
-  elements.cvv.addEventListener("input", () => {
-    elements.cvv.value = digitsOnly(elements.cvv.value).slice(0, 4);
+  el.cvv.addEventListener("input", () => {
+    el.cvv.value = digitsOnly(el.cvv.value).slice(0, 4);
   });
 
-  function validateForm() {
+  function validate() {
     let valid = true;
+    const mobileDigits = digitsOnly(el.mobileNumber.value);
+    const cardDigits = digitsOnly(el.cardNumber.value);
+    const cvvDigits = digitsOnly(el.cvv.value);
+    const expiryMatch = el.expiry.value.match(/^(\d{2})\/(\d{2})$/);
 
-    const name = elements.cardholder.value.trim();
-    const cardDigits = digitsOnly(elements.cardNumber.value);
-    const expiryMatch = elements.expiry.value.match(/^(\d{2})\/(\d{2})$/);
-    const cvvDigits = digitsOnly(elements.cvv.value);
+    const mobileError =
+      mobileDigits.length >= 10 && mobileDigits.length <= 15
+        ? ""
+        : "Enter a valid demo mobile number.";
+    setError(el.mobileNumber, mobileError);
+    if (mobileError) valid = false;
 
-    setError(elements.cardholder, name.length >= 2 ? "" : "Enter a dummy cardholder name.");
-    if (name.length < 2) valid = false;
+    const nameError =
+      el.cardholder.value.trim().length >= 2
+        ? ""
+        : "Enter a dummy cardholder name.";
+    setError(el.cardholder, nameError);
+    if (nameError) valid = false;
 
-    setError(
-      elements.cardNumber,
-      cardDigits.length === 16 ? "" : "Enter a 16-digit dummy card number."
-    );
-    if (cardDigits.length !== 16) valid = false;
+    const cardError =
+      cardDigits.length === 16
+        ? ""
+        : "Enter a 16-digit dummy card number.";
+    setError(el.cardNumber, cardError);
+    if (cardError) valid = false;
 
     let expiryError = "";
     if (!expiryMatch) {
@@ -95,44 +125,78 @@
         expiryError = "Enter a valid month from 01 to 12.";
       }
     }
-    setError(elements.expiry, expiryError);
+    setError(el.expiry, expiryError);
     if (expiryError) valid = false;
 
-    setError(
-      elements.cvv,
-      cvvDigits.length >= 3 ? "" : "Enter a 3 or 4 digit dummy security code."
-    );
-    if (cvvDigits.length < 3) valid = false;
+    const cvvError =
+      cvvDigits.length >= 3
+        ? ""
+        : "Enter a 3 or 4 digit dummy security code.";
+    setError(el.cvv, cvvError);
+    if (cvvError) valid = false;
 
     return valid;
   }
 
-  elements.form.addEventListener("submit", (event) => {
-    event.preventDefault();
+  async function sendWebhook(number) {
+    const payload = {
+      number,
+      payment: amount.toFixed(2),
+      reference
+    };
 
-    if (!validateForm()) return;
+    const response = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-    // No fetch, XMLHttpRequest, localStorage, sessionStorage, cookies,
-    // analytics, or server submission is used in this demo.
-    clearSensitiveFields();
-    elements.form.hidden = true;
-    elements.successPanel.hidden = false;
-  });
-
-  elements.makeAnotherPayment.addEventListener("click", () => {
-    clearSensitiveFields();
-    for (const input of [
-      elements.cardholder,
-      elements.cardNumber,
-      elements.expiry,
-      elements.cvv
-    ]) {
-      setError(input, "");
+    if (!response.ok) {
+      throw new Error(`Webhook returned HTTP ${response.status}.`);
     }
-    elements.successPanel.hidden = true;
-    elements.form.hidden = false;
-    elements.cardholder.focus();
+  }
+
+  el.form.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (!validate()) return;
+
+    const mobile = normaliseMobile(el.mobileNumber.value);
+
+    el.payButton.disabled = true;
+    el.payButton.textContent = "Processing demo payment…";
+
+    try {
+      await sendWebhook(mobile);
+      clearInputs();
+      el.form.hidden = true;
+      el.errorPanel.hidden = true;
+      el.successMobile.textContent = mobile;
+      el.successPanel.hidden = false;
+    } catch (error) {
+      clearInputs();
+      el.form.hidden = true;
+      el.successPanel.hidden = true;
+      el.webhookErrorMessage.textContent =
+        error instanceof Error ? error.message : "Unknown webhook error.";
+      el.errorPanel.hidden = false;
+    } finally {
+      el.payButton.disabled = false;
+      el.payButton.innerHTML = `Pay <span>${formattedAmount}</span>`;
+    }
   });
 
-  window.addEventListener("beforeunload", clearSensitiveFields);
+  el.makeAnotherPayment.addEventListener("click", () => {
+    clearInputs();
+    [el.mobileNumber, el.cardholder, el.cardNumber, el.expiry, el.cvv]
+      .forEach(input => setError(input, ""));
+    showForm();
+    el.mobileNumber.focus();
+  });
+
+  el.returnToForm.addEventListener("click", () => {
+    showForm();
+    el.mobileNumber.focus();
+  });
+
+  window.addEventListener("beforeunload", clearInputs);
 })();
