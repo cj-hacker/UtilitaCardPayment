@@ -6,6 +6,7 @@
 
   const rawAmount = params.get("amount") || "0";
   const rawReference = params.get("reference") || "DEMO";
+  const rawMobile = params.get("mobile") || "";
 
   const parsedAmount = Number.parseFloat(rawAmount);
   const amount = Number.isFinite(parsedAmount) && parsedAmount >= 0 ? parsedAmount : 0;
@@ -42,6 +43,7 @@
   el.buttonAmount.textContent = formattedAmount;
   el.successAmount.textContent = formattedAmount;
   el.successReference.textContent = reference;
+  el.mobileNumber.value = rawMobile.replace(/\D/g, "").slice(0, 15);
 
   const digitsOnly = value => value.replace(/\D/g, "");
 
